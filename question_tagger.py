@@ -15,6 +15,19 @@ posts = nltk.corpus.nps_chat.xml_posts([
 ])
 
 
+def transform(post):
+    tokens = nltk.word_tokenize(post.text)
+    tagged_tokens = nltk.pos_tag(tokens)
+
+    serialized = ['{}_{}'.format(z[0], z[1])
+                  for z in tagged_tokens]
+
+    text = ' '.join(serialized)
+    text = text.replace('?', ' QQ')
+
+    return text, 'Question' in post.get('class')
+
+
 def train_classifier():
     pipeline = Pipeline([
         ('vect', HashingVectorizer()),  # CountVectorizer
@@ -25,8 +38,7 @@ def train_classifier():
     # SVM with a Linear Kernel and default parameters
     # svm.SVC(kernel='linear')
 
-    featuresets = [(post.text.replace('?', ' QQ'), 'Question' in post.get('class'))
-                   for post in posts]
+    featuresets = [transform(post) for post in posts]
     random.shuffle(featuresets)
     size = int(len(featuresets) * .1)
     train_set, test_set = featuresets[size:], featuresets[:size]
